@@ -1,4 +1,5 @@
 # Node Version Management: nenv
+## based on [rbenv](https://github.com/sstephenson/rbenv)
 
 I will write this later.
 
@@ -18,3 +19,8 @@ e.g.)
           0.6.3
         * 0.6.4 (set by /home/ryuone/.nenv/version)
         $ nenv local 0.6.3
+
+
+###License
+
+The MIT license
