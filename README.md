@@ -3,6 +3,7 @@
 I will write this later.
 
 e.g.)
+
         $ cd
         $ git clone git://github.com/ryuone/nenv.git .nenv
         $ echo 'export PATH="$HOME/.nenv/bin:$PATH"' >> ~/.zprofile
