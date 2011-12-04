@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+NODE_VERSION="$(nenv-version-name)"
+
+if [ "$1" = "--bare" ]; then
+    hit_prefix=""
+    miss_prefix=""
+    print_version="$NODE_VERSION"
+else
+    hit_prefix="* "
+    miss_prefix="  "
+    print_version="$(nenv-version)"
+fi
+
+for path in "${NENV_ROOT}/versions/"*; do
+    if [ -d "$path" ]; then
+        version="${path##*/}"
+
+        if [ "$version" == "$NODE_VERSION" ]; then
+            echo "${hit_prefix}${print_version}"
+        else
+            echo "${miss_prefix}${version}"
+        fi
+    fi
+done

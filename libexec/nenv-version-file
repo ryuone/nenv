@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+function version_file(){
+    local root="$NENV_DIR"
+    while [ -n "$root" ]; do
+        if [ -e "${root}/${NODE_LOCAL_VERSION_FILE}" ]; then
+            echo "${root}/${NODE_LOCAL_VERSION_FILE}"
+            exit
+        fi
+        root="${root%/*}"
+    done
+
+    local global_version_file="${NENV_ROOT}/version"
+
+    if [ -e "$global_version_file" ]; then
+        echo "$global_version_file"
+    elif [ -e "${NENV_ROOT}/global" ]; then
+        echo "${NENV_ROOT}/global"
+    elif [ -e "${NENV_ROOT}/default" ]; then
+        echo "${NENV_ROOT}/default"
+    else
+        echo "$global_version_file"
+    fi
+}
+
+function version_read(){
+    local VERSION_FILE="$1"
+
+    if [ -e "$VERSION_FILE" ]; then
+        local version=""
+        while read -a words; do
+            local word="${words[0]}"
+            if [ -z "$version" ] && [ -n "$word" ]; then
+                version="$word"
+            fi
+        done < <( cat "$VERSION_FILE" && echo )
+
+        if [ -n "$version" ]; then
+            echo "$version"
+            return
+        fi
+    fi
+    return 1
+}
+
+version_write(){
+    local NODE_VERSION_FILE="$1"
+    local NODE_VERSION="$2"
+
+    if [ -z "$NODE_VERSION" ] || [ -z "$NODE_VERSION_FILE" ]; then
+        echo "usage: nenv "${0/*nenv-/}" "write" FILENAME VERSION" >&2
+        exit 1
+    fi
+
+    nenv-prefix "$NODE_VERSION" >/dev/null
+
+    # Write the version out to disk.
+    echo "$NODE_VERSION" > "$NODE_VERSION_FILE"
+}
+
+
+command="$1"
+shift 1
+case "$command" in
+    "file")
+        echo "$(version_file)"
+        ;;
+    "read")
+        result="$(version_read $*)"
+        if [ -z "$result" ]; then
+            exit 1
+        else
+            echo "$result"
+        fi
+        ;;
+    "write")
+        version_write $*
+        ;;
+    "")
+        {
+            echo "Command \`{$1} does not support."
+            exit;
+        } >&2
+esac

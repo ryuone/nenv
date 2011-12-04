@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+NODE_VERSION="$(nenv-version-name)"
+NENV_COMMAND="$1"
+
+source "${NENV_ROOT}/lib/nenv-functions"
+
+if [ -z "$NENV_COMMAND" ]; then
+    echo "usage: nenv "${0/*nenv-/}" COMMAND" >&2
+    exit 1
+fi
+
+if [ "$NODE_VERSION" = "system" ]; then
+    PATH="$(remove_from_path "${NENV_ROOT}/shims")"
+    NENV_COMMAND_PATH="$(command -v "$NENV_COMMAND")"
+else
+    nenv-prefix $NODE_VERSION > /dev/null
+    NENV_COMMAND_PATH="${NENV_ROOT}/versions/${NODE_VERSION}/bin/${NENV_COMMAND}"
+fi
+
+if [ -x "$NENV_COMMAND_PATH" ]; then
+    echo "$NENV_COMMAND_PATH"
+else
+    echo "nenv: $NENV_COMMAND: command not found" >&2
+
+    versions="$(nenv-whence "$NENV_COMMAND" || true)"
+    if [ -n "$versions" ]; then
+        { echo
+            echo "The \`$1' command exists in these Node versions:"
+            echo "$versions" | sed 's/^/  /g'
+            echo
+        } >&2
+    fi
+
+    exit 127
+fi

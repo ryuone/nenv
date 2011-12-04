@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+NODE_VERSION="$1"
+NODE_VERSION_FILE="${NENV_ROOT}/version"
+
+if [ -n "$NODE_VERSION" ]; then
+    nenv-version-file "write" "$NODE_VERSION_FILE" "$NODE_VERSION"
+else
+    nenv-version-file "read" "$NODE_VERSION_FILE" ||
+    nenv-version-file "read" "${NENV_ROOT}/global" ||
+    nenv-version-file "read" "${NENV_ROOT}/default" ||
+    echo system
+fi

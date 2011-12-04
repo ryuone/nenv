@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+NODE_VERSION="$1"
+
+if [ "$NODE_VERSION" = "--unset" ]; then
+    rm -f "$NODE_LOCAL_VERSION_FILE"
+elif [ -n "$NODE_VERSION" ]; then
+    nenv-version-file "write" "$NODE_LOCAL_VERSION_FILE" "$NODE_VERSION"
+else
+    nenv-version-file "read" "$NODE_LOCAL_VERSION_FILE" ||
+    {
+        echo "nenv: no local version configured for this directory"
+        exit 1
+    } >&2
+fi

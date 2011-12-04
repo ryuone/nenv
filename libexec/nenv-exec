@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+NENV_COMMAND="$1"
+if [ -z "$NENV_COMMAND" ]; then
+    echo "usage: nenv "${0/*nenv-/}" COMMAND [arg1 arg2...]" >&2
+    exit 1
+fi
+
+NENV_COMMAND_PATH="$(nenv-which "$NENV_COMMAND")"
+NENV_BIN_PATH="${NENV_COMMAND_PATH%/*}"
+
+shift 1
+export PATH="${NENV_BIN_PATH}:${PATH}"
+exec -a "$NENV_COMMAND" "$NENV_COMMAND_PATH" "$@"

@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+SHIM_PATH="${NENV_ROOT}/shims"
+PROTOTYPE_SHIM_PATH="${SHIM_PATH}/.nenv-shim"
+
+mkdir -p "$SHIM_PATH"
+
+set -o noclobber
+{
+    echo > "$PROTOTYPE_SHIM_PATH"
+} 2>/dev/null ||
+{
+    echo "nenv: cannot "${0##*-}": $PROTOTYPE_SHIM_PATH exists"
+    exit 1
+} >&2
+set +o noclobber
+
+trap remove_prototype_shim SIGINT SIGTERM EXIT
+
+remove_prototype_shim() {
+    rm -f "$PROTOTYPE_SHIM_PATH"
+}
+
+create_prototype_shim() {
+    cat > "$PROTOTYPE_SHIM_PATH" <<SH
+#!/usr/bin/env bash
+set -e
+export NENV_ROOT="$NENV_ROOT"
+exec nenv exec "\${0##*/}" "\$@"
+SH
+    chmod +x "$PROTOTYPE_SHIM_PATH"
+}
+
+make_shims() {
+    local glob="$@"
+
+    for file in $glob; do
+        local shim="${file##*/}"
+        [ -e "$shim" ] || ln -f "$PROTOTYPE_SHIM_PATH" "$shim"
+    done
+}
+
+# Save the working directory.
+CUR_PATH=$PWD
+
+# Empty out the shims directory and make it the working directory.
+rm -f "$SHIM_PATH"/*
+cd "$SHIM_PATH"
+
+# Create the prototype shim, then make shims for all known binaries.
+create_prototype_shim
+shopt -s nullglob
+make_shims ../versions/*/bin/*
+shopt -u nullglob
+
+cd "$CUR_PATH"

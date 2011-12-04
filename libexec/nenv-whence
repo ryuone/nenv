@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+if [ "$1" = "--path" ]; then
+    print_paths="1"
+    shift 1
+else
+    print_paths=""
+fi
+
+whence() {
+    local command="$1"
+    nenv-versions --bare | while read version; do
+        path="$(nenv-prefix "$version")/bin/${command}"
+        if [ -x "$path" ]; then
+            [ "$print_paths" ] && echo "$path" || echo "$version"
+        fi
+    done
+}
+
+NENV_COMMAND="$1"
+if [ -z "$NENV_COMMAND" ]; then
+    echo "usage: nenv "${0/*nenv-/}" [--path] COMMAND" >&2
+    exit 1
+fi
+
+result="$(whence "$NENV_COMMAND")"
+[ -n "$result" ] && echo "$result"

@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+print=""
+if [ "$1" = "-" ]; then
+    print=1
+    shift
+fi
+
+if [ -z "${print}" ]; then
+    {
+        echo "# Add below command to your shell profile"
+        echo ""
+        echo "eval "$\(nenv "${0/*nenv-/}" --\)""
+        echo ""
+    } >&2
+
+    exit 1
+fi
+
+mkdir -p "${NENV_ROOT}/"{shims,versions}
+
+echo 'export PATH="'${NENV_ROOT}'/shims:${PATH}"'
+
+cat <<EOS
+function nenv() {
+  command="\$1"
+  if [ "\$#" -gt 0 ]; then
+    shift
+  fi
+
+  command nenv "\$command" "\$@"
+}
+EOS

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+if [ -z "$NODE_VERSION" ]; then
+    NODE_VERSION_FILE="$(nenv-version-file "file")"
+    NODE_VERSION="$(nenv-version-file "read" "$NODE_VERSION_FILE" || true)"
+fi
+
+if [ -z "$NODE_VERSION" ] || [ "$NODE_VERSION" = "system" ]; then
+    echo "system"
+    exit
+fi
+
+if [ -d "${NENV_ROOT}/versions/${NODE_VERSION}" ]; then
+    echo "$NODE_VERSION"
+else
+    echo "nenv: version \`$NODE_VERSION' is not installed" >&2
+    exit 1
+fi

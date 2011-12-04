@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+for command in "${NENV_ROOT}/shims/"*; do
+    if [ "$1" = "--short" ]; then
+        echo "${command##*/}"
+    else
+        echo "$command"
+    fi
+done | sort

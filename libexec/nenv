@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#-*- mode: shell-script; coding: utf-8; -*-
+
+set -e
+[[ -n $NENV_DEBUG ]] && set -x
+
+if [ -z $NENV_ROOT ]; then
+    NENV_ROOT="${HOME}/.nenv"
+else
+    NENV_ROOT=${NENV_ROOT%/}
+fi
+export NENV_ROOT
+source "${NENV_ROOT}/lib/nenv-functions"
+
+if [ -z "${NENV_DIR}" ]; then
+    NENV_DIR="$(pwd)"
+else
+    NENV_DIR="$(absolute_dirname "$NENV_DIR")"
+fi
+export NENV_DIR
+
+shopt -s nullglob    # setopt nullglob if zsh
+bin_path=$(absolute_dirname $0)
+export PATH="${bin_path}:${PATH}"
+shopt -u nullglob    #unsetopt nullglob if zsh
+
+command=$1
+case "$command" in
+    "" | "-h" | "--help" )
+        echo -e "nenv ${nenv_version}\n$(nenv-help)" >&2
+        ;;
+    "-v" | "--version" )
+        version
+        ;;
+    * )
+        command_path="$(command -v "nenv-$command" || true)"
+        if [ -z "$command_path" ]; then
+            echo "nenv: no such command \`$command'" >&2
+            exit 1
+        fi
+
+        shift 1
+        exec "$command_path" "$@"
+        ;;
+esac
