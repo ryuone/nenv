@@ -60,7 +60,6 @@ nenv_make_package_tarball(){
     echo "Compiling..." >&2
     pushd "$TEMP_PATH" >&4
     {
-        make clean
         ./configure --prefix="$PREFIX_PATH"
         make
         make install
