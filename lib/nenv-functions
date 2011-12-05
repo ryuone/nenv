@@ -3,7 +3,7 @@
 
 tar="${TAR:-tar}"
 
-NENV_VERSION="0.0.3"
+NENV_VERSION="0.0.4"
 export NENV_VERSION
 NODE_LOCAL_VERSION_FILE=".nenv-version"
 export NODE_LOCAL_VERSION_FILE

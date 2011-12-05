@@ -5,24 +5,37 @@ set -e
 
 NODE_VERSION="$(nenv-version-name)"
 
-if [ "$1" = "--bare" ]; then
-    hit_prefix=""
-    miss_prefix=""
-    print_version="$NODE_VERSION"
-else
-    hit_prefix="* "
-    miss_prefix="  "
-    print_version="$(nenv-version)"
-fi
+function local_versions(){
+    local hit_prefix="$1"
+    local miss_prefix="$2"
+    local print_version="$3"
 
-for path in "${NENV_ROOT}/versions/"*; do
-    if [ -d "$path" ]; then
-        version="${path##*/}"
+    for path in "${NENV_ROOT}/versions/"*; do
+        if [ -d "$path" ]; then
+            version="${path##*/}"
 
-        if [ "$version" == "$NODE_VERSION" ]; then
-            echo "${hit_prefix}${print_version}"
-        else
-            echo "${miss_prefix}${version}"
+            if [ "$version" == "$NODE_VERSION" ]; then
+                echo "${hit_prefix}${print_version}"
+            else
+                echo "${miss_prefix}${version}"
+            fi
         fi
-    fi
-done
+    done
+}
+
+function remote_versions(){
+    local version_list=$(curl -L "http://nodejs.org/dist/" 2>/dev/null | sed -e 's/<a href="//' | \
+        sed -e 's/">.*//' | sed -e 's/\///' | sed -e 's/.tar.gz//' | \
+        sed -e 's/node-//' | sed -e 's/v//' | sed '1,4 d')
+    local maxline=$(echo "${version_list}" | wc -l)
+    local maxline_1=$[$maxline-1]
+    echo "${version_list}" | sed -e "${maxline_1},${maxline} d" | sort | uniq | tail --lines=20
+}
+
+if [ "$1" = "--remote" ]; then
+    remote_versions
+elif [ "$1" = "--bare" ]; then
+    local_versions "" "" "$NODE_VERSION"
+else
+    local_versions "* " "  " "$(nenv-version)"
+fi
