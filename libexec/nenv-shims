@@ -3,10 +3,22 @@
 set -e
 [[ -n $NENV_DEBUG ]] && set -x
 
-for command in "${NENV_ROOT}/shims/"*; do
-    if [ "$1" = "--short" ]; then
-        echo "${command##*/}"
-    else
-        echo "$command"
-    fi
-done | sort
+case "$1" in
+    "-h" | "--help" )
+        echo "usage: nenv "${0/*nenv-/}" [--short]" >&2
+        exit 1
+        ;;
+    --command-help )
+        echo "--short"
+        exit;
+        ;;
+    * )
+        for command in "${NENV_ROOT}/shims/"*; do
+            if [ "$1" = "--short" ]; then
+                echo "${command##*/}"
+            else
+                echo "$command"
+            fi
+        done | sort
+        ;;
+esac

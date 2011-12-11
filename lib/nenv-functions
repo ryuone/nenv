@@ -3,14 +3,14 @@
 
 tar="${TAR:-tar}"
 
-NENV_VERSION="0.0.4"
+NENV_VERSION="0.0.5"
 export NENV_VERSION
 NODE_LOCAL_VERSION_FILE=".nenv-version"
 export NODE_LOCAL_VERSION_FILE
 
 git_url="https://github.com/joyent/node.git"
 
-version(){
+nenv_version(){
     echo $NENV_VERSION
 }
 

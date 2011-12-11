@@ -4,6 +4,10 @@
 set -e
 [[ -n $NENV_DEBUG ]] && set -x
 
+if [ "$1" = "--command-help" ]; then
+    exit;
+fi
+
 print=""
 if [ "$1" = "-" ]; then
     print=1

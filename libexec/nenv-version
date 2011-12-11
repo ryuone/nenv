@@ -3,4 +3,15 @@
 set -e
 [[ -n $NENV_DEBUG ]] && set -x
 
-echo "$(nenv-version-name) (set by $(nenv-version-obtain-from))"
+case "$1" in
+    "-h" | "--help" )
+        echo "usage: nenv "${0/*nenv-/}"" >&2
+        exit 1
+        ;;
+    --command-help )
+        exit;
+        ;;
+    * )
+        echo "$(nenv-version-name) (set by $(nenv-version-obtain-from))"
+        ;;
+esac

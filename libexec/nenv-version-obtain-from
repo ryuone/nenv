@@ -3,8 +3,19 @@
 set -e
 [[ -n $NENV_DEBUG ]] && set -x
 
-if [ -n "$NODE_VERSION" ]; then
-    echo "NODE_VERSION environment variable"
-else
-    nenv-version-file "file"
-fi
+case "$1" in
+    "-h" | "--help" )
+        echo "usage: nenv "${0/*nenv-/}"" >&2
+        exit 1
+        ;;
+    --command-help )
+        exit;
+        ;;
+    * )
+        if [ -n "$NODE_VERSION" ]; then
+            echo "NODE_VERSION environment variable"
+        else
+            nenv-version-file "file"
+        fi
+        ;;
+esac

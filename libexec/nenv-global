@@ -6,11 +6,20 @@ set -e
 NODE_VERSION="$1"
 NODE_VERSION_FILE="${NENV_ROOT}/version"
 
-if [ -n "$NODE_VERSION" ]; then
-    nenv-version-file "write" "$NODE_VERSION_FILE" "$NODE_VERSION"
-else
-    nenv-version-file "read" "$NODE_VERSION_FILE" ||
-    nenv-version-file "read" "${NENV_ROOT}/global" ||
-    nenv-version-file "read" "${NENV_ROOT}/default" ||
-    echo system
-fi
+case "$NODE_VERSION" in
+    "" | "-h" | "--help" )
+        echo "usage: nenv "${0/*nenv-/}" COMMAND [arg1 arg2...]" >&2
+        exit 1
+        ;;
+    --command-help )
+        echo $(command ls ${NENV_ROOT}/versions/)
+        ;;
+    "" )
+        nenv-version-file "read" "$NODE_VERSION_FILE" ||
+        nenv-version-file "read" "${NENV_ROOT}/global" ||
+        nenv-version-file "read" "${NENV_ROOT}/default" ||
+        echo system
+        ;;
+    * )
+        nenv-version-file "write" "$NODE_VERSION_FILE" "$NODE_VERSION"
+esac

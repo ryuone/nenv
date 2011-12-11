@@ -3,6 +3,10 @@
 set -e
 [[ -n $NENV_DEBUG ]] && set -x
 
+if [ "$1" = "--command-help" ]; then
+    exit
+fi
+
 SHIM_PATH="${NENV_ROOT}/shims"
 PROTOTYPE_SHIM_PATH="${SHIM_PATH}/.nenv-shim"
 

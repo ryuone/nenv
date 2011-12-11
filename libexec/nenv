@@ -27,10 +27,14 @@ shopt -u nullglob    #unsetopt nullglob if zsh
 command=$1
 case "$command" in
     "" | "-h" | "--help" )
-        echo -e "nenv ${nenv_version}\n$(nenv-help)" >&2
+        echo -e "nenv $(nenv_version)\n$(nenv-help)" >&2
         ;;
     "-v" | "--version" )
-        version
+        nenv_version
+        ;;
+    --command-help )
+        commands=($(command ls ${NENV_ROOT}/libexec/nenv-*))
+        echo ${commands[*]##*nenv-}
         ;;
     * )
         command_path="$(command -v "nenv-$command" || true)"

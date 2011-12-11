@@ -4,14 +4,27 @@ set -e
 
 NODE_VERSION="$1"
 
-if [ "$NODE_VERSION" = "--unset" ]; then
-    rm -f "$NODE_LOCAL_VERSION_FILE"
-elif [ -n "$NODE_VERSION" ]; then
-    nenv-version-file "write" "$NODE_LOCAL_VERSION_FILE" "$NODE_VERSION"
-else
-    nenv-version-file "read" "$NODE_LOCAL_VERSION_FILE" ||
-    {
-        echo "nenv: no local version configured for this directory"
+case "$NODE_VERSION" in
+    "" | "-h" | "--help" )
+        echo "usage: nenv "${0/*nenv-/}" [NODE_VERSION|--unset]" >&2
+        echo " --unset : Remove a local file." >&2
         exit 1
-    } >&2
-fi
+        ;;
+    --command-help )
+        echo $(command ls ${NENV_ROOT}/versions/)
+        echo '--unset'
+        ;;
+    --unset )
+        rm -f "$NODE_LOCAL_VERSION_FILE"
+        ;;
+    "" )
+        nenv-version-file "read" "$NODE_LOCAL_VERSION_FILE" ||
+        {
+            echo "nenv: no local version configured for this directory"
+            exit 1
+        } >&2
+        ;;
+    * )
+        nenv-version-file "write" "$NODE_LOCAL_VERSION_FILE" "$NODE_VERSION"
+        ;;
+esac

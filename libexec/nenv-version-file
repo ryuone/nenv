@@ -65,6 +65,15 @@ version_write(){
 command="$1"
 shift 1
 case "$command" in
+    "" | "-h" | "--help" )
+        echo "usage: nenv "${0/*nenv-/}" (file | read | write)" >&2
+        exit 1
+        ;;
+    --command-help )
+        echo "file"
+        echo "read"
+        echo "write"
+        ;;
     "file")
         echo "$(version_file)"
         ;;
@@ -79,9 +88,9 @@ case "$command" in
     "write")
         version_write $*
         ;;
-    "")
+    * )
         {
-            echo "Command \`{$1} does not support."
+            echo "Command \`$command does not support."
             exit;
         } >&2
 esac

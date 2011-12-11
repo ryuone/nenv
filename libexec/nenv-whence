@@ -3,13 +3,6 @@
 set -e
 [[ -n $NENV_DEBUG ]] && set -x
 
-if [ "$1" = "--path" ]; then
-    print_paths="1"
-    shift 1
-else
-    print_paths=""
-fi
-
 whence() {
     local command="$1"
     nenv-versions --bare | while read version; do
@@ -20,11 +13,31 @@ whence() {
     done
 }
 
-NENV_COMMAND="$1"
-if [ -z "$NENV_COMMAND" ]; then
-    echo "usage: nenv "${0/*nenv-/}" [--path] COMMAND" >&2
-    exit 1
-fi
+case "$1" in
+    "-h" | "--help" )
+        echo "usage: nenv "${0/*nenv-/}" [--path] COMMAND" >&2
+        exit 1
+        ;;
+    --command-help )
+        echo "--path"
+        nenv-shims --short
+        exit;
+        ;;
+    * )
+        if [ "$1" = "--path" ]; then
+            print_paths="1"
+            shift 1
+        else
+            print_paths=""
+        fi
 
-result="$(whence "$NENV_COMMAND")"
-[ -n "$result" ] && echo "$result"
+        NENV_COMMAND="$1"
+        if [ -z "$NENV_COMMAND" ]; then
+            echo "usage: nenv "${0/*nenv-/}" [--path] COMMAND" >&2
+            exit 1
+        fi
+
+        result="$(whence "$NENV_COMMAND")"
+        [ -n "$result" ] && echo "$result"
+        ;;
+esac

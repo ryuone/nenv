@@ -32,10 +32,25 @@ function remote_versions(){
     echo "${version_list}" | sed -e "${maxline_1},${maxline} d" | sort | uniq | tail --lines=20
 }
 
-if [ "$1" = "--remote" ]; then
-    remote_versions
-elif [ "$1" = "--bare" ]; then
-    local_versions "" "" "$NODE_VERSION"
-else
-    local_versions "* " "  " "$(nenv-version)"
-fi
+case "$1" in
+    "-h" | "--help" )
+        echo "usage: nenv "${0/*nenv-/}" [--remote | --bare]" >&2
+        exit 1
+        ;;
+    --command-help )
+        echo "--remote"
+        echo "--bare"
+        ;;
+    --remote )
+        remote_versions
+        ;;
+    --bare )
+        local_versions "" "" "$NODE_VERSION"
+        ;;
+    "" )
+        local_versions "* " "  " "$(nenv-version)"
+        ;;
+    * )
+        $0 --help
+        ;;
+esac
