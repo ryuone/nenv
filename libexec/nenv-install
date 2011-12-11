@@ -82,9 +82,6 @@ nenv_make_package_git(){
 }
 
 nenv_install_from(){
-    echo "Open log file to ${LOG_PATH}" >&2
-    exec 4<> "$LOG_PATH"
-
     local install_type="$1"
     local version="$2"
     shift 2
@@ -93,6 +90,9 @@ nenv_install_from(){
         echo "Already installed: $version" >&2
         return 0
     fi
+    echo "Open log file to ${LOG_PATH}" >&2
+    exec 4<> "$LOG_PATH"
+
     mkdir -p "$TEMP_PATH"
     "nenv_fetch_${install_type}" "$version" $*
     "nenv_make_package_${install_type}" "$version" $*
