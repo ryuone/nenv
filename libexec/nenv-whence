@@ -20,7 +20,7 @@ case "$1" in
         ;;
     --command-help )
         echo "--path"
-        nenv-shims --short
+        nenv shims --short
         exit;
         ;;
     * )

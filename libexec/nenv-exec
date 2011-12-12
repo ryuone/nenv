@@ -10,7 +10,7 @@ case "$NENV_COMMAND" in
         exit 1
         ;;
     --command-help )
-        nenv-shims --short
+        nenv shims --short
         ;;
     * )
         NENV_COMMAND_PATH="$(nenv-which "$NENV_COMMAND")"

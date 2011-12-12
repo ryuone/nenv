@@ -61,3 +61,5 @@ make_shims ../versions/*/bin/*
 shopt -u nullglob
 
 cd "$CUR_PATH"
+
+hash -r

@@ -11,7 +11,7 @@ case "$NODE_VERSION" in
         exit 1
         ;;
     --command-help )
-        echo $(command ls ${NENV_ROOT}/versions/)
+        nenv versions --bare
         ;;
     * )
         NENV_PREFIX_PATH="${NENV_ROOT}/versions/${NODE_VERSION}"

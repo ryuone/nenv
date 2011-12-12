@@ -12,7 +12,9 @@ case "$NODE_VERSION" in
         exit 1
         ;;
     --command-help )
-        echo $(command ls ${NENV_ROOT}/versions/)
+        versions=$(nenv versions --bare)
+        versions=(system $versions)
+        echo ${versions[*]}
         ;;
     "" )
         nenv-version-file "read" "$NODE_VERSION_FILE" ||

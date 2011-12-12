@@ -131,7 +131,7 @@ case "$NODE_VERSION" in
         exit 1
         ;;
     "--command-help" )
-        nenv-versions --remote
+        nenv versions --remote
         ;;
     "git")
         {

@@ -11,8 +11,9 @@ case "$NODE_VERSION" in
         exit 1
         ;;
     --command-help )
-        echo $(command ls ${NENV_ROOT}/versions/)
-        echo '--unset'
+        versions=$(nenv versions --bare)
+        versions=(--unset system $versions)
+        echo ${versions[*]}
         ;;
     --unset )
         rm -f "$NODE_LOCAL_VERSION_FILE"
