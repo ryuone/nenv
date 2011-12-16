@@ -20,6 +20,7 @@ nenv_fetch_tarball(){
     local url2="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
     local url3="http://nodejs.org/dist/node-$version.tar.gz"
 
+    echo "Now getting tarball. Version : ${version}" >&4 2>&1
     pushd "$TEMP_PATH" >&4
     {
         curl -L "$url1" \
@@ -35,6 +36,7 @@ nenv_fetch_tarball(){
 nenv_fetch_git(){
     local branch="$1"
 
+    echo "Create git directory : ${NENV_SOURCE_PATH}" >&4 2>&1
     mkdir -p "$NENV_SOURCE_PATH"
     pushd "$NENV_SOURCE_PATH" >&4
 
@@ -57,7 +59,7 @@ nenv_fetch_git(){
 nenv_make_package_tarball(){
     local version="$1"
 
-    echo "Compiling..." >&2
+    echo "Compiling..." >&4 2>&1
     pushd "$TEMP_PATH" >&4
     {
         ./configure --prefix="$PREFIX_PATH"
@@ -70,7 +72,7 @@ nenv_make_package_tarball(){
 nenv_make_package_git(){
     local version="$1"
 
-    echo "Compiling..." >&2
+    echo "Compiling..." >&4 2>&1
     pushd "$NENV_SOURCE_PATH/${version}" >&4
     {
         ./configure --prefix="$PREFIX_PATH"
@@ -92,10 +94,16 @@ nenv_install_from(){
     fi
     echo "Open log file to ${LOG_PATH}" >&2
     exec 4<> "$LOG_PATH"
+    if [ -n "$VERBOSE" ]; then
+        tail -f "$LOG_PATH" &
+        trap "kill 0" SIGINT SIGTERM EXIT
+    fi
 
+    echo "Create temp directory. : ${TEMP_PATH}" >&4 2>&1
     mkdir -p "$TEMP_PATH"
     "nenv_fetch_${install_type}" "$version" $*
     "nenv_make_package_${install_type}" "$version" $*
+    echo "Remove temp directory. : ${TEMP_PATH}" >&4 2>&1
     rm -rf "$TEMP_PATH"
     nenv-rehash
     return 0
@@ -114,8 +122,21 @@ if [ -z "$TMPDIR" ]; then
 else
     TMP="${TMPDIR%/}"
 fi
-NODE_VERSION="$1"
-shift 1
+
+unset NODE_VERSION
+unset VERBOSE
+if [ $# -ge 1 ]; then
+    NODE_VERSION="$1"
+    shift 1
+    if [ $NODE_VERSION = --verbose ]; then
+        VERBOSE=true
+        unset NODE_VERSION
+        if [ $# -ge 1 ]; then
+            NODE_VERSION="$1"
+            shift 1
+        fi
+    fi
+fi
 
 SEED="$(date "+%Y%m%d%H%M%S").$$"
 LOG_PATH="${TMP}/node-build.${SEED}.log"
@@ -124,25 +145,23 @@ PREFIX_PATH="${NENV_ROOT}/versions/${NODE_VERSION}"
 NENV_SOURCE_PATH="${NENV_ROOT}/source"
 
 case "$NODE_VERSION" in
-    "" | "-h" | "--help")
+    "" | -h | --help)
         {
-            echo "usage: nenv "${0/*nenv-/}" VERSION"
+            echo "usage: nenv "${0/*nenv-/}" [--verbose] VERSION"
         } >&2
         exit 1
         ;;
-    "--command-help" )
+    --command-help )
         nenv versions --remote
+        exit;
         ;;
-    "git")
+    git)
         {
             # nenv_install_git "master"
             echo "Does not support yet." >&2
             exit 0
         }
         ;;
-    *)
-        {
-            nenv_install_package $NODE_VERSION $*
-        }
-        ;;
 esac
+
+nenv_install_package $NODE_VERSION $*
