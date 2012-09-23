@@ -5,7 +5,7 @@ set -e
 NODE_VERSION="$1"
 
 case "$NODE_VERSION" in
-    "" | "-h" | "--help" )
+    "-h" | "--help" )
         echo "usage: nenv "${0/*nenv-/}" [NODE_VERSION|--unset]" >&2
         echo " --unset : Remove a local file." >&2
         exit 1

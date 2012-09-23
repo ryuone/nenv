@@ -7,7 +7,7 @@ NODE_VERSION="$1"
 NODE_VERSION_FILE="${NENV_ROOT}/version"
 
 case "$NODE_VERSION" in
-    "" | "-h" | "--help" )
+    "-h" | "--help" )
         echo "usage: nenv "${0/*nenv-/}" COMMAND [arg1 arg2...]" >&2
         exit 1
         ;;
