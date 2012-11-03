@@ -19,6 +19,7 @@ nenv_fetch_tarball(){
     local url1="http://nodejs.org/dist/node-v$version.tar.gz"
     local url2="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
     local url3="http://nodejs.org/dist/node-$version.tar.gz"
+    local url4="http://nodejs.org/dist/$version/node-$version.tar.gz"
 
     echo "Now getting tarball. Version : ${version}" >&4 2>&1
     pushd "$TEMP_PATH" >&4
@@ -28,6 +29,8 @@ nenv_fetch_tarball(){
             || curl -# -L "$url2" \
             | $tar zxf - -C "." --strip-components=1 \
             || curl -# -L "$url3" \
+            | $tar zxf - -C "." --strip-components=1 \
+            || curl -# -L "$url4" \
             | $tar zxf - -C "." --strip-components=1
     } >&4 2>&1
     popd >&4
