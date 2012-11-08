@@ -8,7 +8,7 @@ source "${NENV_ROOT}/lib/nenv-functions"
 
 NODE_BUILD_ROOT="$(absolute_dirname "$0")/.."
 
-nenv_installed () {
+nenv_installed(){
     local version="$1"
     [ -d "$NENV_ROOT/versions/$version/bin" ] || return 1
 }
@@ -111,7 +111,7 @@ nenv_install_from(){
     return 0
 }
 
-nenv_install_package() {
+nenv_install_package(){
     nenv_install_from "tarball" $*
 }
 

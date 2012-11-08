@@ -14,11 +14,11 @@ nenv_version(){
     echo $NENV_VERSION
 }
 
-resolve_link() {
+resolve_link(){
     $(type -p greadlink readlink | head -1) $1
 }
 
-absolute_dirname() {
+absolute_dirname(){
     local cwd="$(pwd)"
     local path="$1"
 
@@ -32,7 +32,7 @@ absolute_dirname() {
     cd "$cwd"
 }
 
-expand_path() {
+expand_path(){
     if [ ! -d "$1" ]; then
         return 1
     fi
@@ -43,7 +43,7 @@ expand_path() {
     cd "$cwd"
 }
 
-remove_from_path() {
+remove_from_path(){
     local path_to_remove="$(expand_path "$1")"
     local result=""
 
