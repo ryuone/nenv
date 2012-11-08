@@ -29,7 +29,7 @@ function remote_versions(){
         sed -e 's/node-//' | sed -e 's/v//' | sed '1,4 d')
     local maxline=$(echo "${version_list}" | wc -l)
     local maxline_1=$[$maxline-1]
-    echo "${version_list}" | sed -e "${maxline_1},${maxline} d" | sort | uniq | tail --lines=20
+    echo "${version_list}" | sed -e "${maxline_1},${maxline} d" | sort | uniq | tail -n 20
 }
 
 case "$1" in
