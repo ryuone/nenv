@@ -65,7 +65,7 @@ nenv_make_package_tarball(){
     echo "Compiling..." >&4 2>&1
     pushd "$TEMP_PATH" >&4
     {
-        ./configure --prefix="$PREFIX_PATH"
+        ./configure --prefix=$PREFIX_PATH $CONFIGURE_OPTS
         make
         make install
     } >&4 2>&1
@@ -78,7 +78,7 @@ nenv_make_package_git(){
     echo "Compiling..." >&4 2>&1
     pushd "$NENV_SOURCE_PATH/${version}" >&4
     {
-        ./configure --prefix="$PREFIX_PATH"
+        ./configure --prefix=$PREFIX_PATH $CONFIGURE_OPTS
         make
         ./tools/waf-light install
     } >&4 2>&1
@@ -88,11 +88,10 @@ nenv_make_package_git(){
 
 nenv_install_from(){
     local install_type="$1"
-    local version="$2"
-    shift 2
+    shift 1
 
-    if nenv_installed "$version"; then
-        echo "Already installed: $version" >&2
+    if nenv_installed "$NODE_VERSION"; then
+        echo "Already installed: $NODE_VERSION" >&2
         return 0
     fi
     echo "Open log file to ${LOG_PATH}" >&2
@@ -104,8 +103,8 @@ nenv_install_from(){
 
     echo "Create temp directory. : ${TEMP_PATH}" >&4 2>&1
     mkdir -p "$TEMP_PATH"
-    "nenv_fetch_${install_type}" "$version" $*
-    "nenv_make_package_${install_type}" "$version" $*
+    "nenv_fetch_${install_type}" "$NODE_VERSION" $*
+    "nenv_make_package_${install_type}" "$NODE_VERSION" $*
     echo "Remove temp directory. : ${TEMP_PATH}" >&4 2>&1
     rm -rf "$TEMP_PATH"
     nenv-rehash
@@ -120,26 +119,68 @@ nenv_install_git(){
     nenv_install_from "git" $*
 }
 
+usage(){
+    {
+        nenv_version
+        echo "usage: nenv "${0/*nenv-/}" [--verbose] [--debug] [--gdb] VERSION"
+    } >&2
+}
+
 if [ -z "$TMPDIR" ]; then
     TMP="/tmp"
 else
     TMP="${TMPDIR%/}"
 fi
 
+parse_options "$@"
 unset NODE_VERSION
 unset VERBOSE
-if [ $# -ge 1 ]; then
-    NODE_VERSION="$1"
-    shift 1
-    if [ $NODE_VERSION = --verbose ]; then
-        VERBOSE=true
-        unset NODE_VERSION
-        if [ $# -ge 1 ]; then
-            NODE_VERSION="$1"
-            shift 1
-        fi
-    fi
-fi
+unset CONFIGURE_OPTS
+
+for argument in "${ARGUMENTS[@]}"; do
+    case "$argument" in
+        "git")
+            {
+                # nenv_install_git "master"
+                echo "Does not support yet." >&2
+                exit 0
+            }
+            ;;
+        *)
+            NODE_VERSION="$argument"
+            ;;
+    esac
+done
+
+for option in "${OPTIONS[@]}"; do
+    case "$option" in
+        "h" | "help" )
+            usage
+            exit;
+            ;;
+        "command-help" )
+            nenv versions --remote
+            exit;
+            ;;
+        "verbose" )
+            echo "verbose enable"
+            VERBOSE=true
+            ;;
+        "debug" )
+            echo "debug enable"
+            CONFIGURE_OPTS="${CONFIGURE_OPTS} --debug "
+            ;;
+        "gdb" )
+            echo "gdb enable"
+            CONFIGURE_OPTS="${CONFIGURE_OPTS} --gdb "
+            ;;
+    esac
+done
+
+if [ ${#ARGUMENTS[*]} -eq 0 ]; then
+    usage
+    exit;
+fi;
 
 SEED="$(date "+%Y%m%d%H%M%S").$$"
 LOG_PATH="${TMP}/node-build.${SEED}.log"
@@ -147,24 +188,4 @@ TEMP_PATH="${TMP}/node-build.${SEED}"
 PREFIX_PATH="${NENV_ROOT}/versions/${NODE_VERSION}"
 NENV_SOURCE_PATH="${NENV_ROOT}/source"
 
-case "$NODE_VERSION" in
-    "" | -h | --help)
-        {
-            echo "usage: nenv "${0/*nenv-/}" [--verbose] VERSION"
-        } >&2
-        exit 1
-        ;;
-    --command-help )
-        nenv versions --remote
-        exit;
-        ;;
-    git)
-        {
-            # nenv_install_git "master"
-            echo "Does not support yet." >&2
-            exit 0
-        }
-        ;;
-esac
-
-nenv_install_package $NODE_VERSION $*
+nenv_install_package $NODE_VERSION ${OPTIONS[*]}

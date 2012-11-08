@@ -3,7 +3,7 @@
 
 tar="${TAR:-tar}"
 
-NENV_VERSION="0.0.8"
+NENV_VERSION="0.0.9"
 export NENV_VERSION
 NODE_LOCAL_VERSION_FILE=".nenv-version"
 export NODE_LOCAL_VERSION_FILE
@@ -60,4 +60,26 @@ remove_from_path() {
     done
 
     echo "${result%:}"
+}
+
+parse_options(){
+    OPTIONS=();
+    ARGUMENTS=();
+    local arg;
+    for arg in "$@";
+    do
+        if [ "${arg:0:1}" = "-" ]; then
+            if [ "${arg:1:1}" = "-" ]; then
+                OPTIONS[${#OPTIONS[*]}]="${arg:2}";
+            else
+                if [ ${#arg} -gt 2 ]; then
+                    echo "Option is wrong \"$arg\"";
+                    exit 1;
+                fi;
+                OPTIONS[${#OPTIONS[*]}]="${arg:1}"
+            fi;
+        else
+            ARGUMENTS[${#ARGUMENTS[*]}]="$arg";
+        fi;
+    done
 }
