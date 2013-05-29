@@ -27,7 +27,9 @@ fi
 
 mkdir -p "${NENV_ROOT}/"{shims,versions}
 
-echo 'export PATH="'${NENV_ROOT}'/shims:${PATH}"'
+if [[ ":${PATH}:" != *:"${NENV_ROOT}/shims":* ]]; then
+    echo 'export PATH="'${NENV_ROOT}'/shims:${PATH}"'
+fi
 
 cat <<EOS
 function nenv() {
