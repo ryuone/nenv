@@ -30,7 +30,7 @@ mkdir -p "${NENV_ROOT}/"{shims,versions}
 echo 'export PATH="'${NENV_ROOT}'/shims:${PATH}"'
 
 cat <<EOS
-function nenv() {
+nenv() {
   command="\$1"
   if [ "\$#" -gt 0 ]; then
     shift
