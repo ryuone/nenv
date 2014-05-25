@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+#
+# Summary: Set or show the shell-specific Node version
+#
+# Usage: nenv shell <version>
+#        nenv shell --unset
+#
+# Sets a shell-specific Node version by setting the `NENV_VERSION'
+# environment variable in your shell. This version overrides local
+# application-specific versions and the global version.
+#
+# <version> should be a string matching a Node version known to nenv.
+# The special version string `system' will use your default system Node.
+# Run `nenv versions' for a list of available Node versions.
+
+set -e
+[ -n "$NENV_DEBUG" ] && set -x
+
+# Provide nenv completions
+if [ "$1" = "--complete" ]; then
+  echo --unset
+  echo system
+  exec nenv-versions --bare
+fi
+
+version="$1"
+shell="$(basename "${NENV_SHELL:-$SHELL}")"
+
+if [ -z "$version" ]; then
+  if [ -z "$NENV_VERSION" ]; then
+    echo "nenv: no shell-specific version configured" >&2
+    exit 1
+  else
+    echo "echo \"\$NENV_VERSION\""
+    exit
+  fi
+fi
+
+if [ "$version" = "--unset" ]; then
+  case "$shell" in
+  fish )
+    echo "set -e NENV_VERSION"
+    ;;
+  * )
+    echo "unset NENV_VERSION"
+    ;;
+  esac
+  exit
+fi
+
+# Make sure the specified version is installed.
+if nenv-prefix "$version" >/dev/null; then
+  case "$shell" in
+  fish )
+    echo "setenv NENV_VERSION \"${version}\""
+    ;;
+  * )
+    echo "export NENV_VERSION=\"${version}\""
+    ;;
+  esac
+else
+  echo "false"
+  exit 1
+fi

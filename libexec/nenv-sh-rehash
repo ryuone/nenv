@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -e
+[ -n "$NENV_DEBUG" ] && set -x
+
+# Provide nenv completions
+if [ "$1" = "--complete" ]; then
+  exec nenv-rehash --complete
+fi
+
+shell="$(basename "${NENV_SHELL:-$SHELL}")"
+
+# When nenv shell integration is enabled, delegate to nenv-rehash,
+# then tell the shell to empty its command lookup cache.
+nenv-rehash
+
+case "$shell" in
+fish )
+  # no rehash support
+  ;;
+* )
+  echo "hash -r 2>/dev/null || true"
+  ;;
+esac
