@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
-#-*- mode: shell-script; coding: utf-8; -*-
+#
+# Summary: Install a Node version from git
+#
+# Usage: nenv install [-f] [-vps] <version>
+#        nenv install [-f] [-vps] <definition-file>
+#        nenv install -l|--list
+#
+#   -l/--list          List all available versions
+#   -f/--force         Install even if the version appears to be installed already
+#   -s/--skip-existing Skip if the version appears to be installed already
+#   -v/--verbose       Verbose mode: print compliation status to stdout
+#   -p/--patch         Apply a patch from stdin before building
 
 set -e
 [[ -n $NENV_DEBUG ]] && set -x
@@ -13,6 +24,15 @@ nenv_installed(){
     [ -d "$NENV_ROOT/versions/$version/bin" ] || return 1
 }
 
+nenv_remote_versions() {
+    curl -so - http://nodejs.org/dist/ \
+      | egrep '<a href="v.*/'          \
+      | egrep -o '"v[^"]+/'            \
+      | tr -d \"/                      \
+      | egrep -o '[^v]+'               \
+      | sort -V
+}
+
 nenv_fetch_tarball(){
     local version="$1"
 
@@ -24,7 +44,7 @@ nenv_fetch_tarball(){
     echo "Now getting tarball. Version : ${version}" >&4 2>&1
     pushd "$TEMP_PATH" >&4
     {
-        curl -L "$url1" \
+        curl -# -L "$url1" \
             | $tar zxf - -C "." --strip-components=1 \
             || curl -# -L "$url2" \
             | $tar zxf - -C "." --strip-components=1 \
@@ -158,8 +178,9 @@ for option in "${OPTIONS[@]}"; do
             usage
             exit;
             ;;
-        "command-help" )
-            nenv versions --remote
+        "l" | "list" )
+            echo "Available versions"
+            nenv_remote_versions
             exit;
             ;;
         "verbose" )
@@ -186,6 +207,6 @@ SEED="$(date "+%Y%m%d%H%M%S").$$"
 LOG_PATH="${TMP}/node-build.${SEED}.log"
 TEMP_PATH="${TMP}/node-build.${SEED}"
 PREFIX_PATH="${NENV_ROOT}/versions/${NODE_VERSION}"
-NENV_SOURCE_PATH="${NENV_ROOT}/source"
+NENV_SOURCE_PATH="${NENV_ROOT}/sources"
 
 nenv_install_package $NODE_VERSION ${OPTIONS[*]}
