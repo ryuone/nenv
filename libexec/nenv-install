@@ -121,7 +121,7 @@ nenv_install_git(){
 
 usage(){
     {
-        nenv_version
+        nenv---version
         echo "usage: nenv "${0/*nenv-/}" [--verbose] [--debug] [--gdb] VERSION"
     } >&2
 }

@@ -24,13 +24,13 @@ bin_path=$(absolute_dirname $0)
 export PATH="${bin_path}:${PATH}"
 shopt -u nullglob    #unsetopt nullglob if zsh
 
-command=$1
+command="$1"
 case "$command" in
     "" | "-h" | "--help" )
-        echo -e "nenv $(nenv_version)\n$(nenv-help)" >&2
+        echo -e "$(nenv---version)\n$(nenv-help)" >&2
         ;;
-    "-v" | "--version" )
-        nenv_version
+    "-v" )
+        exec nenv---version
         ;;
     --command-help )
         commands=($(command ls ${NENV_ROOT}/libexec/nenv-*))
