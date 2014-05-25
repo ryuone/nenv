@@ -1,31 +1,55 @@
 #!/usr/bin/env bash
+#
+# Summary: Set or show the local application-specific Node version
+#
+# Usage: nenv local <version>
+#        nenv local --unset
+#
+# Sets the local application-specific Node version by writing the
+# version name to a file named `.node-version'.
+#
+# When you run a Node command, nenv will look for a `.node-version'
+# file in the current directory and each parent directory. If no such
+# file is found in the tree, nenv will use the global Node version
+# specified with `nenv global'. A version specified with the
+# `NENV_VERSION' environment variable takes precedence over local
+# and global versions.
+#
+# For backwards compatibility, nenv will also read version
+# specifications from `.nenv-version' files, but a `.node-version'
+# file in the same directory takes precedence.
+#
+# <version> should be a string matching a Node version known to nenv.
+# The special version string `system' will use your default system Node.
+# Run `nenv versions' for a list of available Node versions.
+
 set -e
-[[ -n $NENV_DEBUG ]] && set -x
+[ -n "$NENV_DEBUG" ] && set -x
 
-NODE_VERSION="$1"
+# Provide nenv completions
+if [ "$1" = "--complete" ]; then
+  echo --unset
+  echo system
+  exec nenv-versions --bare
+fi
 
-case "$NODE_VERSION" in
-    "-h" | "--help" )
-        echo "usage: nenv "${0/*nenv-/}" [NODE_VERSION|--unset]" >&2
-        echo " --unset : Remove a local file." >&2
-        exit 1
-        ;;
-    --command-help )
-        versions=$(nenv versions --bare)
-        versions=(--unset system $versions)
-        echo ${versions[*]}
-        ;;
-    --unset )
-        rm -f "$NODE_LOCAL_VERSION_FILE"
-        ;;
-    "" )
-        nenv-version-file "read" "$NODE_LOCAL_VERSION_FILE" ||
-        {
-            echo "nenv: no local version configured for this directory"
-            exit 1
-        } >&2
-        ;;
-    * )
-        nenv-version-file "write" "$NODE_LOCAL_VERSION_FILE" "$NODE_VERSION"
-        ;;
-esac
+NENV_VERSION="$1"
+
+if [ "$NENV_VERSION" = "--unset" ]; then
+  rm -f .node-version .nenv-version
+elif [ -n "$NENV_VERSION" ]; then
+  previous_file="$(NENV_VERSION= nenv-version-origin || true)"
+  nenv-version-file-write .node-version "$NENV_VERSION"
+  if [ "$previous_file" -ef .nenv-version ]; then
+    rm -f .nenv-version
+    { echo "nenv: removed existing \`.nenv-version' file and migrated"
+      echo "       local version specification to \`.node-version' file"
+    } >&2
+  fi
+else
+  nenv-version-file-read .node-version ||
+  nenv-version-file-read .nenv-version ||
+  { echo "nenv: no local version configured for this directory"
+    exit 1
+  } >&2
+fi

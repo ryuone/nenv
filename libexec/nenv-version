@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
-#-*- mode: shell-script; coding: utf-8; -*-
-set -e
-[[ -n $NENV_DEBUG ]] && set -x
+# Summary: Show the current Node version and its origin
+#
+# Shows the currently selected Node version and how it was
+# selected. To obtain only the version string, use `nenv
+# version-name'.
 
-case "$1" in
-    "-h" | "--help" )
-        echo "usage: nenv "${0/*nenv-/}"" >&2
-        exit 1
-        ;;
-    --command-help )
-        exit;
-        ;;
-    * )
-        echo "$(nenv-version-name) (set by $(nenv-version-obtain-from))"
-        ;;
-esac
+set -e
+[ -n "$NENV_DEBUG" ] && set -x
+
+echo "$(nenv-version-name) (set by $(nenv-version-origin))"

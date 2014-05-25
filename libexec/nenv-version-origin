@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Summary: Explain how the current Node version is set
+set -e
+[ -n "$NENV_DEBUG" ] && set -x
+
+if [ -n "$NENV_VERSION" ]; then
+  echo "NENV_VERSION environment variable"
+else
+  nenv-version-file
+fi

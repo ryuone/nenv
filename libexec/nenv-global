@@ -1,27 +1,34 @@
 #!/usr/bin/env bash
-#-*- mode: shell-script; coding: utf-8; -*-
+#
+# Summary: Set or show the global Node version
+#
+# Usage: nenv global <version>
+#
+# Sets the global Node version. You can override the global version at
+# any time by setting a directory-specific version with `nenv local'
+# or by setting the `NENV_VERSION' environment variable.
+#
+# <version> should be a string matching a Node version known to nenv.
+# The special version string `system' will use your default system Node.
+# Run `nenv versions' for a list of available Node versions.
+
 set -e
-[[ -n $NENV_DEBUG ]] && set -x
+[ -n "$NENV_DEBUG" ] && set -x
 
-NODE_VERSION="$1"
-NODE_VERSION_FILE="${NENV_ROOT}/version"
+# Provide nenv completions
+if [ "$1" = "--complete" ]; then
+  echo system
+  exec nenv-versions --bare
+fi
 
-case "$NODE_VERSION" in
-    "-h" | "--help" )
-        echo "usage: nenv "${0/*nenv-/}" COMMAND [arg1 arg2...]" >&2
-        exit 1
-        ;;
-    --command-help )
-        versions=$(nenv versions --bare)
-        versions=(system $versions)
-        echo ${versions[*]}
-        ;;
-    "" )
-        nenv-version-file "read" "$NODE_VERSION_FILE" ||
-        nenv-version-file "read" "${NENV_ROOT}/global" ||
-        nenv-version-file "read" "${NENV_ROOT}/default" ||
-        echo system
-        ;;
-    * )
-        nenv-version-file "write" "$NODE_VERSION_FILE" "$NODE_VERSION"
-esac
+NENV_VERSION="$1"
+NENV_VERSION_FILE="${NENV_ROOT}/version"
+
+if [ -n "$NENV_VERSION" ]; then
+  nenv-version-file-write "$NENV_VERSION_FILE" "$NENV_VERSION"
+else
+  nenv-version-file-read "$NENV_VERSION_FILE" ||
+  nenv-version-file-read "${NENV_ROOT}/global" ||
+  nenv-version-file-read "${NENV_ROOT}/default" ||
+  echo system
+fi

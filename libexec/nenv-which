@@ -1,51 +1,88 @@
 #!/usr/bin/env bash
-#-*- mode: shell-script; coding: utf-8; -*-
+#
+# Summary: Display the full path to an executable
+#
+# Usage: nenv which <command>
+#
+# Displays the full path to the executable that nenv will invoke when
+# you run the given command.
+
 set -e
-[[ -n $NENV_DEBUG ]] && set -x
+[ -n "$NENV_DEBUG" ] && set -x
 
-case "$1" in
-    "-h" | "--help" )
-        echo "usage: nenv "${0/*nenv-/}" [NODE_VERSION]" >&2
-        exit 1
-        ;;
-    --command-help )
-        nenv shims --short
-        exit;
-        ;;
-    * )
-        NODE_VERSION="$(nenv-version-name)"
-        NENV_COMMAND="$1"
+# Provide nenv completions
+if [ "$1" = "--complete" ]; then
+  exec nenv shims --short
+fi
 
-        source "${NENV_ROOT}/lib/nenv-functions"
+expand_path() {
+  if [ ! -d "$1" ]; then
+    return 1
+  fi
 
-        if [ -z "$NENV_COMMAND" ]; then
-            echo "usage: nenv "${0/*nenv-/}" COMMAND" >&2
-            exit 1
-        fi
+  local cwd="$(pwd)"
+  cd "$1"
+  pwd
+  cd "$cwd"
+}
 
-        if [ "$NODE_VERSION" = "system" ]; then
-            PATH="$(remove_from_path "${NENV_ROOT}/shims")"
-            NENV_COMMAND_PATH="$(command -v "$NENV_COMMAND")"
-        else
-            nenv-prefix $NODE_VERSION > /dev/null
-            NENV_COMMAND_PATH="${NENV_ROOT}/versions/${NODE_VERSION}/bin/${NENV_COMMAND}"
-        fi
+remove_from_path() {
+  local path_to_remove="$(expand_path "$1")"
+  local result=""
 
-        if [ -x "$NENV_COMMAND_PATH" ]; then
-            echo "$NENV_COMMAND_PATH"
-        else
-            echo "nenv: $NENV_COMMAND: command not found" >&2
+  if [ -z "$path_to_remove" ]; then
+    echo "${PATH}"
+    return
+  fi
 
-            versions="$(nenv-whence "$NENV_COMMAND" || true)"
-            if [ -n "$versions" ]; then
-                { echo
-                    echo "The \`$1' command exists in these Node versions:"
-                    echo "$versions" | sed 's/^/  /g'
-                    echo
-                } >&2
-            fi
+  local paths
+  IFS=: paths=($PATH)
 
-            exit 127
-        fi
-        ;;
-esac
+  for path in "${paths[@]}"; do
+    path="$(expand_path "$path" || true)"
+    if [ -n "$path" ] && [ "$path" != "$path_to_remove" ]; then
+      result="${result}${path}:"
+    fi
+  done
+
+  echo "${result%:}"
+}
+
+NENV_VERSION="$(nenv-version-name)"
+NENV_COMMAND="$1"
+
+if [ -z "$NENV_COMMAND" ]; then
+  nenv-help --usage which >&2
+  exit 1
+fi
+
+if [ "$NENV_VERSION" = "system" ]; then
+  PATH="$(remove_from_path "${NENV_ROOT}/shims")"
+  NENV_COMMAND_PATH="$(command -v "$NENV_COMMAND" || true)"
+else
+  NENV_COMMAND_PATH="${NENV_ROOT}/versions/${NENV_VERSION}/bin/${NENV_COMMAND}"
+fi
+
+OLDIFS="$IFS"
+IFS=$'\n' scripts=(`nenv-hooks which`)
+IFS="$OLDIFS"
+for script in "${scripts[@]}"; do
+  source "$script"
+done
+
+if [ -x "$NENV_COMMAND_PATH" ]; then
+  echo "$NENV_COMMAND_PATH"
+else
+  echo "nenv: $NENV_COMMAND: command not found" >&2
+
+  versions="$(nenv-whence "$NENV_COMMAND" || true)"
+  if [ -n "$versions" ]; then
+    { echo
+      echo "The \`$1' command exists in these Node versions:"
+      echo "$versions" | sed 's/^/  /g'
+      echo
+    } >&2
+  fi
+
+  exit 127
+fi
