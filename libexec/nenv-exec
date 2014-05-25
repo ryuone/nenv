@@ -1,23 +1,47 @@
 #!/usr/bin/env bash
-#-*- mode: shell-script; coding: utf-8; -*-
+#
+# Summary: Run an executable with the selected Node version
+#
+# Usage: nenv exec <command> [arg1 arg2...]
+#
+# Runs an executable by first preparing PATH so that the selected Node
+# version's `bin' directory is at the front.
+#
+# For example, if the currently selected Node version is 0.11.13:
+#   nenv exec npm install
+#
+# is equivalent to:
+#   PATH="$NENV_ROOT/versions/0.11.13/bin:$PATH" npm install
+
 set -e
-[[ -n $NENV_DEBUG ]] && set -x
+[ -n "$NENV_DEBUG" ] && set -x
 
+# Provide nenv completions
+if [ "$1" = "--complete" ]; then
+  exec nenv shims --short
+fi
+
+NENV_VERSION="$(nenv-version-name)"
 NENV_COMMAND="$1"
-case "$NENV_COMMAND" in
-    "" | "-h" | "--help" )
-        echo "usage: nenv "${0/*nenv-/}" COMMAND [arg1 arg2...]" >&2
-        exit 1
-        ;;
-    --command-help )
-        nenv shims --short
-        ;;
-    * )
-        NENV_COMMAND_PATH="$(nenv-which "$NENV_COMMAND")"
-        NENV_BIN_PATH="${NENV_COMMAND_PATH%/*}"
 
-        shift 1
-        export PATH="${NENV_BIN_PATH}:${PATH}"
-        exec -a "$NENV_COMMAND" "$NENV_COMMAND_PATH" "$@"
-        ;;
-esac
+if [ -z "$NENV_COMMAND" ]; then
+  nenv-help --usage exec >&2
+  exit 1
+fi
+
+export NENV_VERSION
+NENV_COMMAND_PATH="$(nenv-which "$NENV_COMMAND")"
+NENV_BIN_PATH="${NENV_COMMAND_PATH%/*}"
+
+OLDIFS="$IFS"
+IFS=$'\n' scripts=(`nenv-hooks exec`)
+IFS="$OLDIFS"
+for script in "${scripts[@]}"; do
+  source "$script"
+done
+
+shift 1
+if [ "$NENV_VERSION" != "system" ]; then
+  export PATH="${NENV_BIN_PATH}:${PATH}"
+fi
+exec -a "$NENV_COMMAND" "$NENV_COMMAND_PATH" "$@"
