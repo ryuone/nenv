@@ -1,56 +1,39 @@
 #!/usr/bin/env bash
-#-*- mode: shell-script; coding: utf-8; -*-
+# Summary: List all Ruby versions available to nenv
+# Usage: nenv versions [--bare]
+#
+# Lists all Ruby versions found in `$NENV_ROOT/versions/*'.
+
 set -e
-[[ -n $NENV_DEBUG ]] && set -x
+[ -n "$NENV_DEBUG" ] && set -x
 
-NODE_VERSION="$(nenv-version-name)"
+if [ "$1" = "--bare" ]; then
+  hit_prefix=""
+  miss_prefix=""
+  current_version=""
+  include_system=""
+else
+  hit_prefix="* "
+  miss_prefix="  "
+  current_version="$(nenv-version-name || true)"
+  include_system="1"
+fi
 
-function local_versions(){
-    local hit_prefix="$1"
-    local miss_prefix="$2"
-    local print_version="$3"
-
-    for path in "${NENV_ROOT}/versions/"*; do
-        if [ -d "$path" ]; then
-            version="${path##*/}"
-
-            if [ "$version" == "$NODE_VERSION" ]; then
-                echo "${hit_prefix}${print_version}"
-            else
-                echo "${miss_prefix}${version}"
-            fi
-        fi
-    done
+print_version() {
+  if [ "$1" == "$current_version" ]; then
+    echo "${hit_prefix}$(nenv-version 2>/dev/null)"
+  else
+    echo "${miss_prefix}$1"
+  fi
 }
 
-function remote_versions(){
-    local version_list=$(curl -L "http://nodejs.org/dist/" 2>/dev/null | sed -e 's/<a href="//' | \
-        sed -e 's/">.*//' | sed -e 's/\///' | sed -e 's/.tar.gz//' | \
-        sed -e 's/node-//' | sed -e 's/v//' | sed '1,4 d')
-    local maxline=$(echo "${version_list}" | wc -l)
-    local maxline_1=$[$maxline-1]
-    echo "${version_list}" | sed -e "${maxline_1},${maxline} d" | sort -t. -k 1,1n -k 2,2n -k 3,3n | uniq | tail -n 20
-}
+# Include "system" in the non-bare output, if it exists
+if [ -n "$include_system" ] && NENV_VERSION=system nenv-which ruby >/dev/null 2>&1; then
+  print_version system
+fi
 
-case "$1" in
-    "-h" | "--help" )
-        echo "usage: nenv "${0/*nenv-/}" [--remote | --bare]" >&2
-        exit 1
-        ;;
-    --command-help )
-        echo "--remote"
-        echo "--bare"
-        ;;
-    --remote )
-        remote_versions
-        ;;
-    --bare )
-        local_versions "" "" "$NODE_VERSION"
-        ;;
-    "" )
-        local_versions "* " "  " "$(nenv-version)"
-        ;;
-    * )
-        $0 --help
-        ;;
-esac
+for path in "${NENV_ROOT}/versions/"*; do
+  if [ -d "$path" ]; then
+    print_version "${path##*/}"
+  fi
+done
