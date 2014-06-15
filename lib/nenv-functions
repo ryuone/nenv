@@ -10,10 +10,6 @@ export NODE_LOCAL_VERSION_FILE
 
 git_url="https://github.com/joyent/node.git"
 
-nenv_version(){
-    echo $NENV_VERSION
-}
-
 resolve_link(){
     $(type -p greadlink readlink | head -1) $1
 }
@@ -30,36 +26,6 @@ absolute_dirname(){
 
     pwd
     cd "$cwd"
-}
-
-expand_path(){
-    if [ ! -d "$1" ]; then
-        return 1
-    fi
-
-    local cwd="$(pwd)"
-    cd "$1"
-    pwd
-    cd "$cwd"
-}
-
-remove_from_path(){
-    local path_to_remove="$(expand_path "$1")"
-    local result=""
-
-    if [ -z "$path_to_remove" ]; then
-        echo "${PATH}"
-        return
-    fi
-
-    for path in ${PATH//:/$'\n'}; do
-        path="$(expand_path "$path" || true)"
-        if [ -n "$path" ] && [ "$path" != "$path_to_remove" ]; then
-            result="${result}${path}:"
-        fi
-    done
-
-    echo "${result%:}"
 }
 
 parse_options(){

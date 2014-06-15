@@ -1,32 +1,31 @@
 #!/usr/bin/env bash
-#-*- mode: shell-script; coding: utf-8; -*-
+# Summary: Show the current Node version
 set -e
-[[ -n $NENV_DEBUG ]] && set -x
+[ -n "$NENV_DEBUG" ] && set -x
 
-case "$1" in
-    "-h" | "--help" )
-        echo "usage: nenv "${0/*nenv-/}"" >&2
-        exit 1
-        ;;
-    --command-help )
-        exit;
-        ;;
-    * )
-        if [ -z "$NODE_VERSION" ]; then
-            NODE_VERSION_FILE="$(nenv-version-file "file")"
-            NODE_VERSION="$(nenv-version-file "read" "$NODE_VERSION_FILE" || true)"
-        fi
+if [ -z "$NENV_VERSION" ]; then
+  NENV_VERSION_FILE="$(nenv-version-file)"
+  NENV_VERSION="$(nenv-version-file-read "$NENV_VERSION_FILE" || true)"
+fi
 
-        if [ -z "$NODE_VERSION" ] || [ "$NODE_VERSION" = "system" ]; then
-            echo "system"
-            exit
-        fi
+if [ -z "$NENV_VERSION" ] || [ "$NENV_VERSION" = "system" ]; then
+  echo "system"
+  exit
+fi
 
-        if [ -d "${NENV_ROOT}/versions/${NODE_VERSION}" ]; then
-            echo "$NODE_VERSION"
-        else
-            echo "nenv: version \`$NODE_VERSION' is not installed" >&2
-            exit 1
-        fi
-        ;;
-esac
+version_exists() {
+  local version="$1"
+  [ -d "${NENV_ROOT}/versions/${version}" ]
+}
+
+if version_exists "$NENV_VERSION"; then
+  echo "$NENV_VERSION"
+elif version_exists "${NENV_VERSION#node-}"; then
+  { echo "warning: ignoring extraneous \`node-' prefix in version \`${NENV_VERSION}'"
+    echo "         (set by $(nenv-version-origin))"
+  } >&2
+  echo "${NENV_VERSION#node-}"
+else
+  echo "nenv: version \`$NENV_VERSION' is not installed" >&2
+  exit 1
+fi

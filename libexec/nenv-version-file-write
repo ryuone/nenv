@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Usage: nenv version-file-write <file> <version>
+
+set -e
+[ -n "$NENV_DEBUG" ] && set -x
+
+NENV_VERSION_FILE="$1"
+NENV_VERSION="$2"
+
+if [ -z "$NENV_VERSION" ] || [ -z "$NENV_VERSION_FILE" ]; then
+  nenv-help --usage version-file-write >&2
+  exit 1
+fi
+
+# Make sure the specified version is installed.
+nenv-prefix "$NENV_VERSION" >/dev/null
+
+# Write the version out to disk.
+echo "$NENV_VERSION" > "$NENV_VERSION_FILE"

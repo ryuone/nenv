@@ -1,96 +1,33 @@
 #!/usr/bin/env bash
-#-*- mode: shell-script; coding: utf-8; -*-
+# Summary: Detect the file that sets the current nenv version
 set -e
-[[ -n $NENV_DEBUG ]] && set -x
+[ -n "$NENV_DEBUG" ] && set -x
 
-function version_file(){
-    local root="$NENV_DIR"
-    while [ -n "$root" ]; do
-        if [ -e "${root}/${NODE_LOCAL_VERSION_FILE}" ]; then
-            echo "${root}/${NODE_LOCAL_VERSION_FILE}"
-            exit
-        fi
-        root="${root%/*}"
-    done
-
-    local global_version_file="${NENV_ROOT}/version"
-
-    if [ -e "$global_version_file" ]; then
-        echo "$global_version_file"
-    elif [ -e "${NENV_ROOT}/global" ]; then
-        echo "${NENV_ROOT}/global"
-    elif [ -e "${NENV_ROOT}/default" ]; then
-        echo "${NENV_ROOT}/default"
-    else
-        echo "$global_version_file"
+find_local_version_file() {
+  local root="$1"
+  while [ -n "$root" ]; do
+    if [ -e "${root}/.node-version" ]; then
+      echo "${root}/.node-version"
+      exit
+    elif [ -e "${root}/.nenv-version" ]; then
+      echo "${root}/.nenv-version"
+      exit
     fi
+    root="${root%/*}"
+  done
 }
 
-function version_read(){
-    local VERSION_FILE="$1"
+find_local_version_file "$NENV_DIR"
+[ "$NENV_DIR" = "$PWD" ] || find_local_version_file "$PWD"
 
-    if [ -e "$VERSION_FILE" ]; then
-        local version=""
-        while read -a words; do
-            local word="${words[0]}"
-            if [ -z "$version" ] && [ -n "$word" ]; then
-                version="$word"
-            fi
-        done < <( cat "$VERSION_FILE" && echo )
+global_version_file="${NENV_ROOT}/version"
 
-        if [ -n "$version" ]; then
-            echo "$version"
-            return
-        fi
-    fi
-    return 1
-}
-
-version_write(){
-    local NODE_VERSION_FILE="$1"
-    local NODE_VERSION="$2"
-
-    if [ -z "$NODE_VERSION" ] || [ -z "$NODE_VERSION_FILE" ]; then
-        echo "usage: nenv "${0/*nenv-/}" "write" FILENAME VERSION" >&2
-        exit 1
-    fi
-
-    nenv-prefix "$NODE_VERSION" >/dev/null
-
-    # Write the version out to disk.
-    echo "$NODE_VERSION" > "$NODE_VERSION_FILE"
-}
-
-
-command="$1"
-shift 1
-case "$command" in
-    "" | "-h" | "--help" )
-        echo "usage: nenv "${0/*nenv-/}" (file | read | write)" >&2
-        exit 1
-        ;;
-    --command-help )
-        echo "file"
-        echo "read"
-        echo "write"
-        ;;
-    "file")
-        echo "$(version_file)"
-        ;;
-    "read")
-        result="$(version_read $*)"
-        if [ -z "$result" ]; then
-            exit 1
-        else
-            echo "$result"
-        fi
-        ;;
-    "write")
-        version_write $*
-        ;;
-    * )
-        {
-            echo "Command \`$command does not support."
-            exit;
-        } >&2
-esac
+if [ -e "$global_version_file" ]; then
+  echo "$global_version_file"
+elif [ -e "${NENV_ROOT}/global" ]; then
+  echo "${NENV_ROOT}/global"
+elif [ -e "${NENV_ROOT}/default" ]; then
+  echo "${NENV_ROOT}/default"
+else
+  echo "$global_version_file"
+fi

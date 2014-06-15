@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Summary: Display the version of nenv
+#
+# Displays the version number of this nenv release, including the
+# current revision from git, if available.
+#
+# The format of the git revision is:
+#   <version>-<num_commit>-<git_sha>
+# where `num_commits` is the number of commits since `version` was
+# tagged.
+
+set -e
+[ -n "$NENV_DEBUG" ] && set -x
+
+version="0.4.0"
+
+if cd "$NENV_ROOT" 2>/dev/null; then
+  git_revision="$(git describe --tags HEAD 2>/dev/null ||true)"
+  git_revision="${git_revision#v}"
+fi
+
+echo "nenv ${git_revision:-$version}"

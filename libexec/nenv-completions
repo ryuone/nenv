@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Usage: nenv completions <command> [arg1 arg2...]
+
+set -e
+[ -n "$NENV_DEBUG" ] && set -x
+
+COMMAND="$1"
+if [ -z "$COMMAND" ]; then
+  nenv-help --usage completions >&2
+  exit 1
+fi
+
+COMMAND_PATH="$(command -v "nenv-$COMMAND" || command -v "nenv-sh-$COMMAND")"
+if grep -iE "^([#%]|--|//) provide nenv completions" "$COMMAND_PATH" >/dev/null; then
+  shift
+  exec "$COMMAND_PATH" --complete "$@"
+fi

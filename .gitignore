@@ -1,4 +1,5 @@
-shims
-versions
-version
-source
+/shims
+/versions
+/version
+/sources
+/cache
