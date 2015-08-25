@@ -1,4 +1,4 @@
-# Groom your app’s NodeJS / io.js environment with nenv.
+# Groom your app’s Node environment with nenv.
 
 nenv is a version manager for Node ([Node.js](https://github.com/joyent/node) /
 [io.js](https://github.com/nodejs/node)). It is heavily based on [rbenv](https://github.com/sstephenson/rbenv).
