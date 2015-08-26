@@ -25,6 +25,9 @@ nenv_installed(){
 }
 
 nenv_remote_versions() {
+    curl -so - -L -4 https://iojs.org/dist/index.tab \
+      | cut -f 1 | tail -n +2 \
+    && \
     curl -so - http://nodejs.org/dist/ \
       | egrep '<a href="v.*/'          \
       | egrep -o '"v[^"]+/'            \
@@ -36,6 +39,7 @@ nenv_remote_versions() {
 nenv_fetch_tarball(){
     local version="$1"
 
+    local url0="https://iojs.org/dist/v$version/iojs-v$version.tar.gz"
     local url1="http://nodejs.org/dist/node-v$version.tar.gz"
     local url2="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
     local url3="http://nodejs.org/dist/node-$version.tar.gz"
@@ -44,7 +48,9 @@ nenv_fetch_tarball(){
     echo "Now getting tarball. Version : ${version}" >&4 2>&1
     pushd "$TEMP_PATH" >&4
     {
-        curl -# -L "$url1" \
+        curl -# -L -4 "$url0" \
+            | $tar zxf - -C "." --strip-components=1 \
+            || curl -# -L "$url1" \
             | $tar zxf - -C "." --strip-components=1 \
             || curl -# -L "$url2" \
             | $tar zxf - -C "." --strip-components=1 \
