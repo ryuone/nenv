@@ -36,28 +36,62 @@ nenv_remote_versions() {
       | sort -V
 }
 
+nenv_get_kernel_name(){
+  local kernel_name=`uname -s`
+
+  case "$kernel_name" in
+    "Linux")
+      kernel_type="-linux"
+      ;;
+    "Darwin")
+      kernel_type="-darwin"
+      ;;
+  esac
+  echo $kernel_type
+}
+
+nenv_get_arch_name(){
+  local arch_name=`uname -m`
+
+  case "$arch_name" in
+    "x86_64")
+      arch_type="-x64"
+      ;;
+    "i686")
+      arch_type="-x86"
+      ;;
+  esac
+  echo $arch_type
+
+}
+
+nenv_get_file_name(){
+  local version="$1"
+  local node_binary_install="$2"
+  local kernel_type="$(nenv_get_kernel_name)"
+  local arch_type="$(nenv_get_arch_name)"
+
+  case "$node_binary_install" in
+    "true")
+      file_name="node-v${version}${kernel_type}${arch_type}.tar.gz"
+      ;;
+    *)
+      file_name="node-v${version}.tar.gz"
+      ;;
+  esac
+  echo $file_name
+}
+
 nenv_fetch_tarball(){
     local version="$1"
-
-    local url0="https://iojs.org/dist/v$version/iojs-v$version.tar.gz"
-    local url1="http://nodejs.org/dist/node-v$version.tar.gz"
-    local url2="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
-    local url3="http://nodejs.org/dist/node-$version.tar.gz"
-    local url4="http://nodejs.org/dist/$version/node-$version.tar.gz"
+    local node_binary_install="$2"
+    local file_name="$(nenv_get_file_name "$version" "$node_binary_install")"
+    local url="http://nodejs.org/dist/v${version}/${file_name}"
 
     echo "Now getting tarball. Version : ${version}" >&4 2>&1
     pushd "$TEMP_PATH" >&4
     {
-        curl -# -L -4 "$url0" \
-            | $tar zxf - -C "." --strip-components=1 \
-            || curl -# -L "$url1" \
-            | $tar zxf - -C "." --strip-components=1 \
-            || curl -# -L "$url2" \
-            | $tar zxf - -C "." --strip-components=1 \
-            || curl -# -L "$url3" \
-            | $tar zxf - -C "." --strip-components=1 \
-            || curl -# -L "$url4" \
-            | $tar zxf - -C "." --strip-components=1
+        curl -# -L -4 "$url" | $tar zxf - -C "." --strip-components=1
     } >&4 2>&1
     popd >&4
 }
@@ -114,10 +148,12 @@ nenv_make_package_git(){
 
 nenv_install_from(){
     local install_type="$1"
-    shift 1
+    local node_version="$2"
+    local node_binary_install="$3"
+    shift 3
 
-    if nenv_installed "$NODE_VERSION"; then
-        echo "Already installed: $NODE_VERSION" >&2
+    if nenv_installed "$node_version"; then
+        echo "Already installed: $node_version" >&2
         return 0
     fi
     echo "Open log file to ${LOG_PATH}" >&2
@@ -129,12 +165,33 @@ nenv_install_from(){
 
     echo "Create temp directory. : ${TEMP_PATH}" >&4 2>&1
     mkdir -p "$TEMP_PATH"
-    "nenv_fetch_${install_type}" "$NODE_VERSION" $*
-    "nenv_make_package_${install_type}" "$NODE_VERSION" $*
+    "nenv_fetch_${install_type}" "$node_version" $node_binary_install $*
+
+    case "$node_binary_install" in
+      "true")
+        nenv_move_node_binary_module "$node_version"
+        ;;
+      *)
+        "nenv_make_package_${install_type}" "$node_version" $*
+        ;;
+    esac
+
     echo "Remove temp directory. : ${TEMP_PATH}" >&4 2>&1
     rm -rf "$TEMP_PATH"
     nenv-rehash
     return 0
+}
+
+nenv_move_node_binary_module(){
+    local version="$1"
+
+    echo "Moving... node module." >&4 2>&1
+    pushd "$TEMP_PATH" >&4
+    {
+        mkdir -p $PREFIX_PATH
+        mv ./* $PREFIX_PATH/
+    } >&4 2>&1
+    popd >&4
 }
 
 nenv_install_package(){
@@ -162,6 +219,7 @@ parse_options "$@"
 unset NODE_VERSION
 unset VERBOSE
 unset CONFIGURE_OPTS
+NODE_BINARY_INSTALL=false
 
 for argument in "${ARGUMENTS[@]}"; do
     case "$argument" in
@@ -171,6 +229,9 @@ for argument in "${ARGUMENTS[@]}"; do
                 echo "Does not support yet." >&2
                 exit 0
             }
+            ;;
+        "binary")
+            NODE_BINARY_INSTALL=true
             ;;
         *)
             NODE_VERSION="$argument"
@@ -215,4 +276,4 @@ TEMP_PATH="${TMP}/node-build.${SEED}"
 PREFIX_PATH="${NENV_ROOT}/versions/${NODE_VERSION}"
 NENV_SOURCE_PATH="${NENV_ROOT}/sources"
 
-nenv_install_package $NODE_VERSION ${OPTIONS[*]}
+nenv_install_package $NODE_VERSION $NODE_BINARY_INSTALL ${OPTIONS[*]}
