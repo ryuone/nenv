@@ -28,12 +28,12 @@ nenv_remote_versions() {
     curl -so - -L -4 https://iojs.org/dist/index.tab \
       | cut -f 1 | tail -n +2 \
     && \
-    curl -so - http://nodejs.org/dist/ \
-      | egrep '<a href="v.*/'          \
-      | egrep -o '"v[^"]+/'            \
-      | tr -d \"/                      \
-      | egrep -o '[^v]+'               \
-      | sort -V
+    curl -so - -L -4 https://nodejs.org/dist/ \
+       | egrep '<a href="v.*/'          \
+       | egrep -o '"v[^"]+/'            \
+       | tr -d \"/                      \
+       | egrep -o '[^v]+'               \
+       | sort -V
 }
 
 nenv_get_kernel_name(){
