@@ -15,9 +15,9 @@
 set -e
 [[ -n $NENV_DEBUG ]] && set -x
 
-source "${NENV_ROOT}/lib/nenv-functions"
+source "${BASH_SOURCE%/*}/../lib/nenv-functions"
 
-NODE_BUILD_ROOT="$(absolute_dirname "$0")/.."
+NODE_BUILD_ROOT="${BASH_SOURCE%/*}/.."
 
 nenv_installed(){
     local version="$1"
