@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Summary: List all Ruby versions available to nenv
+# Summary: List all Node versions available to nenv
 # Usage: nenv versions [--bare]
 #
-# Lists all Ruby versions found in `$NENV_ROOT/versions/*'.
+# Lists all Node versions found in `$NENV_ROOT/versions/*'.
 
 set -e
 [ -n "$NENV_DEBUG" ] && set -x
@@ -28,7 +28,7 @@ print_version() {
 }
 
 # Include "system" in the non-bare output, if it exists
-if [ -n "$include_system" ] && NENV_VERSION=system nenv-which ruby >/dev/null 2>&1; then
+if [ -n "$include_system" ] && NENV_VERSION=system nenv-which node >/dev/null 2>&1; then
   print_version system
 fi
 
