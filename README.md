@@ -137,7 +137,6 @@ easy to fork and contribute any changes back upstream.
     ~~~
 
     **Ubuntu Desktop note**: Modify your `~/.bashrc` instead of `~/.bash_profile`.
-
     **Zsh note**: Modify your `~/.zshrc` file instead of `~/.bash_profile`.
 
 3. Add `nenv init` to your shell to enable shims and autocompletion.
@@ -147,6 +146,8 @@ easy to fork and contribute any changes back upstream.
     ~~~
 
     _Same as in previous step, use `~/.bashrc` on Ubuntu, or `~/.zshrc` for Zsh._
+    _Make sure that `export PATH="$HOME/.nenv/bin:$PATH"` comes **before** `eval "$(nenv init -)"`_
+    
 
 4. Restart your shell so that PATH changes take effect. (Opening a new
    terminal tab will usually do it.) Now check if nenv was set up:
